@@ -1,0 +1,1 @@
+enum TipoMaterial { peso, unidade }
