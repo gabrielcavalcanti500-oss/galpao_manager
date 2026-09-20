@@ -5,6 +5,7 @@ import '../features/compras/presentation/pages/compra_page.dart';
 import '../features/compras/presentation/pages/historico_compras_page.dart';
 import '../features/gastos/presentation/pages/gasto_page.dart';
 import '../features/gastos/presentation/pages/historico_gastos_page.dart';
+import '../features/vendas/presentation/pages/venda_page.dart';
 
 final class AppRouter {
   static final router = GoRouter(
@@ -23,6 +24,8 @@ final class AppRouter {
         path: '/historico-gastos',
         builder: (context, state) => const HistoricoGastosPage(),
       ),
+
+      GoRoute(path: '/vendas', builder: (context, state) => const VendaPage()),
 
       GoRoute(
         path: '/historico-compras',
