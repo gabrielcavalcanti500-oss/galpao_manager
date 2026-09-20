@@ -24,7 +24,7 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -55,11 +55,16 @@ class AppDatabase {
     ''');
 
     await _criarTabelaGastos(db);
+    await _criarTabelasVendas(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await _criarTabelaGastos(db);
+    }
+
+    if (oldVersion < 3) {
+      await _criarTabelasVendas(db);
     }
   }
 
@@ -73,5 +78,30 @@ class AppDatabase {
         observacao TEXT
       )
     ''');
+  }
+
+  Future<void> _criarTabelasVendas(Database db) async {
+    await db.execute('''
+    CREATE TABLE vendas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      data TEXT NOT NULL,
+      total REAL NOT NULL
+    )
+  ''');
+
+    await db.execute('''
+    CREATE TABLE itens_venda (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      venda_id INTEGER NOT NULL,
+      material_nome TEXT NOT NULL,
+      tipo_material TEXT NOT NULL,
+      quantidade REAL NOT NULL,
+      preco_unitario REAL NOT NULL,
+      subtotal REAL NOT NULL,
+      FOREIGN KEY (venda_id)
+        REFERENCES vendas (id)
+        ON DELETE CASCADE
+    )
+  ''');
   }
 }
