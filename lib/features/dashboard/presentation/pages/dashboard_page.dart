@@ -6,6 +6,7 @@ import '../../../compras/data/repositories/compra_repository.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/quick_actions.dart';
 import '../../../gastos/data/repositories/gasto_repository.dart';
+import '../../../vendas/data/repositories/venda_repository.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -17,10 +18,12 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   final CompraRepository _compraRepository = CompraRepository();
   final GastoRepository _gastoRepository = GastoRepository();
+  final VendaRepository _vendaRepository = VendaRepository();
 
   double _pesoTotalComprado = 0;
   double _valorTotalComprado = 0;
   double _valorTotalGastos = 0;
+  double _valorTotalVendido = 0;
 
   @override
   void initState() {
@@ -35,12 +38,15 @@ class _DashboardPageState extends State<DashboardPage> {
 
     final valorGastos = await _gastoRepository.calcularValorTotalGastos();
 
+    final valorVendas = await _vendaRepository.calcularValorTotalVendido();
+
     if (!mounted) return;
 
     setState(() {
       _pesoTotalComprado = peso;
       _valorTotalComprado = valorCompras;
       _valorTotalGastos = valorGastos;
+      _valorTotalVendido = valorVendas;
     });
   }
 
@@ -90,8 +96,13 @@ class _DashboardPageState extends State<DashboardPage> {
                               child: GMStatCard(
                                 icon: Icons.sell_rounded,
                                 title: 'Vendas',
-                                value: 'R\$ 0,00',
-                                onTap: () {},
+                                value:
+                                    'R\$ ${_valorTotalVendido.toStringAsFixed(2)}',
+                                onTap: () async {
+                                  await context.push('/historico-vendas');
+
+                                  _carregarDados();
+                                },
                               ),
                             ),
                           ),

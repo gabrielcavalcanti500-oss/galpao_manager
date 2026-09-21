@@ -88,59 +88,63 @@ class _HistoricoGastosPageState extends State<HistoricoGastosPage> {
       context: context,
       showDragHandle: true,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                gasto.descricao,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Text(
-                _formatarData(gasto.data),
-                style: const TextStyle(color: Colors.black54),
-              ),
-
-              const SizedBox(height: 20),
-
-              const Text('Valor', style: TextStyle(color: Colors.black54)),
-
-              const SizedBox(height: 4),
-
-              Text(
-                'R\$ ${gasto.valor.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-
-              if (gasto.observacao != null && gasto.observacao!.isNotEmpty) ...[
-                const SizedBox(height: 24),
-
-                const Text(
-                  'Observação',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+        return FractionallySizedBox(
+          heightFactor: 0.65,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  gasto.descricao,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
 
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
 
                 Text(
-                  gasto.observacao!,
-                  style: const TextStyle(color: Colors.black87, fontSize: 15),
+                  _formatarData(gasto.data),
+                  style: const TextStyle(color: Colors.black54),
                 ),
+
+                const SizedBox(height: 20),
+
+                const Text('Valor', style: TextStyle(color: Colors.black54)),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  'R\$ ${gasto.valor.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+
+                if (gasto.observacao != null &&
+                    gasto.observacao!.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'Observação',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    gasto.observacao!,
+                    style: const TextStyle(color: Colors.black87, fontSize: 15),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         );
       },
