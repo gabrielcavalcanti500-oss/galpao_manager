@@ -5,11 +5,13 @@ import '../../../../core/constants/app_colors.dart';
 
 class QuickActions extends StatelessWidget {
   final VoidCallback? onCompraFinalizada;
+  final VoidCallback? onVendaFinalizada;
   final VoidCallback? onGastoFinalizado;
 
   const QuickActions({
     super.key,
     this.onCompraFinalizada,
+    this.onVendaFinalizada,
     this.onGastoFinalizado,
   });
 
@@ -23,7 +25,6 @@ class QuickActions extends StatelessWidget {
           label: 'Compra',
           onTap: () async {
             await context.push('/compras');
-
             onCompraFinalizada?.call();
           },
         ),
@@ -31,7 +32,10 @@ class QuickActions extends StatelessWidget {
         _QuickButton(
           icon: Icons.sell_rounded,
           label: 'Venda',
-          onTap: () => context.push('/vendas'),
+          onTap: () async {
+            await context.push('/vendas');
+            onVendaFinalizada?.call();
+          },
         ),
 
         _QuickButton(
@@ -39,7 +43,6 @@ class QuickActions extends StatelessWidget {
           label: 'Gasto',
           onTap: () async {
             await context.push('/gastos');
-
             onGastoFinalizado?.call();
           },
         ),
