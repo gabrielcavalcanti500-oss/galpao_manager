@@ -1,4 +1,6 @@
 import '../../../../core/database/app_database.dart';
+import '../../domain/entities/item_relatorio.dart';
+import '../../domain/entities/relatorio_compras.dart';
 
 class RelatorioRepository {
   final AppDatabase _database;
@@ -50,5 +52,30 @@ class RelatorioRepository {
     );
 
     return (resultado.first['total'] as num).toDouble();
+  }
+
+  Future<RelatorioCompras> gerarRelatorioCompras({
+    required DateTime inicio,
+    required DateTime fim,
+  }) async {
+    final resultado = await buscarComprasPorPeriodo(inicio: inicio, fim: fim);
+
+    final itens = resultado.map((item) {
+      return ItemRelatorio(
+        materialNome: item['material_nome'] as String,
+        tipoMaterial: item['tipo_material'] as String,
+        quantidade: (item['quantidade'] as num).toDouble(),
+        total: (item['total'] as num).toDouble(),
+      );
+    }).toList();
+
+    final totalCompras = await buscarTotalCompras(inicio: inicio, fim: fim);
+
+    return RelatorioCompras(
+      inicio: inicio,
+      fim: fim,
+      itens: itens,
+      totalCompras: totalCompras,
+    );
   }
 }

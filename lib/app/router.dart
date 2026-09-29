@@ -8,6 +8,7 @@ import '../features/gastos/presentation/pages/historico_gastos_page.dart';
 import '../features/vendas/presentation/pages/venda_page.dart';
 import '../features/vendas/presentation/pages/historico_vendas_page.dart';
 import '../features/estoque/presentation/pages/estoque_page.dart';
+import '../features/relatorios/presentation/pages/relatorios_page.dart';
 
 final class AppRouter {
   static final router = GoRouter(
@@ -37,6 +38,10 @@ final class AppRouter {
       GoRoute(
         path: '/estoque',
         builder: (context, state) => const EstoquePage(),
+      ),
+      GoRoute(
+        path: '/relatorios',
+        builder: (context, state) => const RelatoriosPage(),
       ),
 
       GoRoute(
