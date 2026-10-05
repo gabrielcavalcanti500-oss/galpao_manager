@@ -41,6 +41,7 @@ dependencies:
   google_fonts: ^6.3.0
   sqflite: ^2.4.3
   path: ^1.9.1
+  share_plus: ^12.0.1
 
 dev_dependencies:
   flutter_test:
