@@ -24,7 +24,7 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -56,6 +56,7 @@ class AppDatabase {
 
     await _criarTabelaGastos(db);
     await _criarTabelasVendas(db);
+    await _criarTabelaRetiradas(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -65,6 +66,10 @@ class AppDatabase {
 
     if (oldVersion < 3) {
       await _criarTabelasVendas(db);
+    }
+
+    if (oldVersion < 4) {
+      await _criarTabelaRetiradas(db);
     }
   }
 
@@ -82,26 +87,38 @@ class AppDatabase {
 
   Future<void> _criarTabelasVendas(Database db) async {
     await db.execute('''
-    CREATE TABLE vendas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      data TEXT NOT NULL,
-      total REAL NOT NULL
-    )
-  ''');
+      CREATE TABLE vendas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        data TEXT NOT NULL,
+        total REAL NOT NULL
+      )
+    ''');
 
     await db.execute('''
-    CREATE TABLE itens_venda (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      venda_id INTEGER NOT NULL,
-      material_nome TEXT NOT NULL,
-      tipo_material TEXT NOT NULL,
-      quantidade REAL NOT NULL,
-      preco_unitario REAL NOT NULL,
-      subtotal REAL NOT NULL,
-      FOREIGN KEY (venda_id)
-        REFERENCES vendas (id)
-        ON DELETE CASCADE
-    )
-  ''');
+      CREATE TABLE itens_venda (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        venda_id INTEGER NOT NULL,
+        material_nome TEXT NOT NULL,
+        tipo_material TEXT NOT NULL,
+        quantidade REAL NOT NULL,
+        preco_unitario REAL NOT NULL,
+        subtotal REAL NOT NULL,
+        FOREIGN KEY (venda_id)
+          REFERENCES vendas (id)
+          ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _criarTabelaRetiradas(Database db) async {
+    await db.execute('''
+      CREATE TABLE retiradas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        material_nome TEXT NOT NULL,
+        tipo_material TEXT NOT NULL,
+        quantidade REAL NOT NULL,
+        data TEXT NOT NULL
+      )
+    ''');
   }
 }

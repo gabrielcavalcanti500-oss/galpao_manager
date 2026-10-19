@@ -44,7 +44,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     final valorCompras = await _compraRepository.calcularValorTotalComprado();
 
-    final valorGastos = await _gastoRepository.calcularValorTotalGastos();
+    final valorGastos = await _gastoRepository.calcularValorGastosMesAtual();
 
     final valorVendas = await _vendaRepository.calcularValorTotalVendido();
 

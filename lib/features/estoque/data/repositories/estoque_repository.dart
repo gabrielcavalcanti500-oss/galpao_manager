@@ -38,11 +38,27 @@ class EstoqueRepository {
     return (resultado.first['total'] as num).toDouble();
   }
 
+  Future<double> calcularQuantidadeRetirada(MaterialModel material) async {
+    final db = await _database.database;
+
+    final resultado = await db.rawQuery(
+      '''
+      SELECT COALESCE(SUM(quantidade), 0) AS total
+      FROM retiradas
+      WHERE material_nome = ?
+      ''',
+      [material.nome],
+    );
+
+    return (resultado.first['total'] as num).toDouble();
+  }
+
   Future<double> calcularEstoque(MaterialModel material) async {
     final comprado = await calcularQuantidadeComprada(material);
     final vendido = await calcularQuantidadeVendida(material);
+    final retirado = await calcularQuantidadeRetirada(material);
 
-    return comprado - vendido;
+    return comprado - vendido - retirado;
   }
 
   Future<List<MaterialModel>> buscarMateriais() async {
