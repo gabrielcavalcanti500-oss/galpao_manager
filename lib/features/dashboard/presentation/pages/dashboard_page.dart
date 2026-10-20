@@ -9,6 +9,7 @@ import '../../../gastos/data/repositories/gasto_repository.dart';
 import '../../../vendas/data/repositories/venda_repository.dart';
 import '../../../estoque/data/repositories/estoque_repository.dart';
 import '../../domain/entities/movimentacao.dart';
+import '../../../retiradas/data/repositories/retirada_repository.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -22,6 +23,7 @@ class _DashboardPageState extends State<DashboardPage> {
   final GastoRepository _gastoRepository = GastoRepository();
   final VendaRepository _vendaRepository = VendaRepository();
   final EstoqueRepository _estoqueRepository = EstoqueRepository();
+  final RetiradaRepository _retiradaRepository = RetiradaRepository();
 
   double _pesoTotalComprado = 0;
   double _valorTotalComprado = 0;
@@ -46,7 +48,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     final valorGastos = await _gastoRepository.calcularValorGastosMesAtual();
 
-    final valorVendas = await _vendaRepository.calcularValorTotalVendido();
+    final valorVendas = await _vendaRepository.calcularValorVendidoMesAtual();
 
     final materiais = await _estoqueRepository.buscarMateriais();
 
@@ -81,6 +83,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final compras = await _compraRepository.buscarCompras();
     final vendas = await _vendaRepository.buscarVendas();
     final gastos = await _gastoRepository.buscarGastos();
+    final retiradas = await _retiradaRepository.buscarRetiradas();
 
     final movimentacoes = <Movimentacao>[];
 
@@ -124,6 +127,25 @@ class _DashboardPageState extends State<DashboardPage> {
           valor: gasto.valor,
           descricao: gasto.descricao,
           detalhe: gasto.observacao,
+        ),
+      );
+    }
+
+    for (final retirada in retiradas) {
+      final quantidade = retirada.quantidade % 1 == 0
+          ? retirada.quantidade.toStringAsFixed(0)
+          : retirada.quantidade.toStringAsFixed(2);
+
+      final unidade = retirada.tipoMaterial.toLowerCase().contains('unidade')
+          ? 'unidades'
+          : 'kg';
+
+      movimentacoes.add(
+        Movimentacao(
+          tipo: TipoMovimentacao.retirada,
+          data: retirada.data,
+          descricao: 'Retirada de ${retirada.materialNome}',
+          detalhe: '$quantidade $unidade retirados',
         ),
       );
     }
@@ -348,10 +370,12 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            'R\$ ${movimentacao.valor.toStringAsFixed(2)}',
-            style: TextStyle(fontWeight: FontWeight.bold, color: config.$2),
-          ),
+
+          if (movimentacao.valor != null)
+            Text(
+              'R\$ ${movimentacao.valor!.toStringAsFixed(2)}',
+              style: TextStyle(fontWeight: FontWeight.bold, color: config.$2),
+            ),
         ],
       ),
     );
@@ -367,6 +391,9 @@ class _DashboardPageState extends State<DashboardPage> {
 
       case TipoMovimentacao.gasto:
         return (Icons.receipt_long_rounded, const Color(0xff0B7A3E));
+
+      case TipoMovimentacao.retirada:
+        return (Icons.inventory_2_rounded, const Color(0xffD97706));
     }
   }
 

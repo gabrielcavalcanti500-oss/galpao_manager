@@ -1,16 +1,16 @@
-enum TipoMovimentacao { compra, venda, gasto }
+enum TipoMovimentacao { compra, venda, gasto, retirada }
 
 class Movimentacao {
   final TipoMovimentacao tipo;
   final DateTime data;
-  final double valor;
+  final double? valor;
   final String descricao;
   final String? detalhe;
 
   const Movimentacao({
     required this.tipo,
     required this.data,
-    required this.valor,
+    this.valor,
     required this.descricao,
     this.detalhe,
   });

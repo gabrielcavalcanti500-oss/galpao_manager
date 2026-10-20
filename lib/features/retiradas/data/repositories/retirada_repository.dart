@@ -108,21 +108,4 @@ class RetiradaRepository {
 
     await db.delete('retiradas', where: 'id = ?', whereArgs: [id]);
   }
-
-  Future<void> imprimirRetiradas() async {
-    final retiradas = await buscarRetiradas();
-
-    print('===== RETIRADAS REGISTRADAS =====');
-
-    for (final retirada in retiradas) {
-      print(
-        'ID: ${retirada.id} | '
-        'Material: ${retirada.materialNome} | '
-        'Quantidade: ${retirada.quantidade} | '
-        'Data: ${retirada.data}',
-      );
-    }
-
-    print('===== FIM DAS RETIRADAS =====');
-  }
 }

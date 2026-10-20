@@ -110,6 +110,26 @@ class VendaRepository {
     return (resultado.first['total'] as num).toDouble();
   }
 
+  Future<double> calcularValorVendidoMesAtual() async {
+    final agora = DateTime.now();
+
+    final inicioMes = DateTime(agora.year, agora.month, 1);
+    final inicioProximoMes = DateTime(agora.year, agora.month + 1, 1);
+
+    final db = await _database.database;
+
+    final resultado = await db.rawQuery(
+      '''
+      SELECT COALESCE(SUM(total), 0) AS total
+      FROM vendas
+      WHERE data >= ? AND data < ?
+      ''',
+      [inicioMes.toIso8601String(), inicioProximoMes.toIso8601String()],
+    );
+
+    return (resultado.first['total'] as num).toDouble();
+  }
+
   Future<double> calcularPesoTotalVendido() async {
     final db = await _database.database;
 
