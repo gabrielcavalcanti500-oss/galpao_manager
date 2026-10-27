@@ -286,7 +286,30 @@ class _ComprasPageState extends State<ComprasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF5F7FA),
-      appBar: AppBar(title: const Text('Nova Compra'), centerTitle: true),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF172B4D),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Nova compra',
+              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
+            ),
+            SizedBox(height: 2),
+            Text(
+              'Registre os materiais recebidos',
+              style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFFD5DEEB),
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
@@ -360,24 +383,62 @@ class _ComprasPageState extends State<ComprasPage> {
 
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
-                      color: const Color(0xffEAF7EF),
-                      borderRadius: BorderRadius.circular(14),
+                      color: const Color(0xFFE8F6EF),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFCBEBDD)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.sell_rounded,
-                          color: Color(0xff0B7A3E),
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.sell_rounded,
+                            color: Color(0xFF16865B),
+                            size: 22,
+                          ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Preço por quilograma',
+                                style: TextStyle(
+                                  color: Color(0xFF527463),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                'Valor padrão do material',
+                                style: TextStyle(
+                                  color: Color(0xFF16865B),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Text(
-                          'Preço/kg: R\$ '
-                          '${materialSelecionado!.precoPadrao!.toStringAsFixed(2)}',
+                          'R\$ ${materialSelecionado!.precoPadrao!.toStringAsFixed(2).replaceAll('.', ',')}',
                           style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xff0B7A3E),
+                            color: Color(0xFF16865B),
+                            fontSize: 19,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ],
@@ -393,19 +454,31 @@ class _ComprasPageState extends State<ComprasPage> {
 
                 SizedBox(
                   width: double.infinity,
-                  height: 52,
+                  height: 56,
                   child: FilledButton.icon(
                     onPressed: adicionarItem,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF16865B),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
                     icon: Icon(
                       indiceEditando == null
-                          ? Icons.add_rounded
-                          : Icons.check_rounded,
+                          ? Icons.add_circle_outline_rounded
+                          : Icons.check_circle_outline_rounded,
+                      size: 22,
                     ),
                     label: Text(
                       indiceEditando == null
                           ? 'Adicionar material'
                           : 'Salvar alteração',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
@@ -455,13 +528,23 @@ class _ComprasPageState extends State<ComprasPage> {
 
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 58,
                 child: FilledButton.icon(
                   onPressed: itens.isEmpty ? null : finalizarCompra,
-                  icon: const Icon(Icons.check_circle_outline_rounded),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF172B4D),
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFFE3E8EF),
+                    disabledForegroundColor: const Color(0xFF9AA6B5),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  icon: const Icon(Icons.check_circle_rounded, size: 22),
                   label: const Text(
                     'Finalizar Compra',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -478,19 +561,18 @@ class _ComprasPageState extends State<ComprasPage> {
     required String subtitle,
   }) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          padding: const EdgeInsets.all(9),
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
-            color: const Color(0xffEAF7EF),
-            borderRadius: BorderRadius.circular(12),
+            color: const Color(0xFFE8F6EF),
+            borderRadius: BorderRadius.circular(14),
           ),
-          child: Icon(icon, color: const Color(0xff0B7A3E), size: 20),
+          child: Icon(icon, color: const Color(0xFF16865B), size: 22),
         ),
-
         const SizedBox(width: 12),
-
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,14 +580,15 @@ class _ComprasPageState extends State<ComprasPage> {
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF172B4D),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: const TextStyle(fontSize: 13, color: Colors.black54),
+                style: const TextStyle(color: Color(0xFF718096), fontSize: 12),
               ),
             ],
           ),
@@ -586,33 +669,76 @@ class _ComprasPageState extends State<ComprasPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xff0B7A3E),
-        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF172B4D), Color(0xFF243F65)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF172B4D).withValues(alpha: 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
             children: [
-              Icon(Icons.receipt_long_rounded, color: Colors.white70),
+              Icon(
+                Icons.receipt_long_rounded,
+                color: Color(0xFF70D9AA),
+                size: 23,
+              ),
               SizedBox(width: 10),
               Text(
                 'Resumo da compra',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 17,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
-
+          const SizedBox(height: 22),
+          const Text(
+            'VALOR TOTAL',
+            style: TextStyle(
+              color: Color(0xFFCCD7E5),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'R\$ ${totalCompra.toStringAsFixed(2).replaceAll('.', ',')}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(height: 1, color: Colors.white.withValues(alpha: 0.15)),
           const SizedBox(height: 18),
-
           Row(
             children: [
-              _summaryItem('Itens', itens.length.toString()),
-              _summaryItem('Peso', '${pesoTotal.toStringAsFixed(2)} kg'),
-              _summaryItem('Total', 'R\$ ${totalCompra.toStringAsFixed(2)}'),
+              _summaryItem(
+                Icons.inventory_2_outlined,
+                'Itens',
+                itens.length.toString(),
+              ),
+              const SizedBox(width: 12),
+              _summaryItem(
+                Icons.scale_outlined,
+                'Peso total',
+                '${pesoTotal.toStringAsFixed(2).replaceAll('.', ',')} kg',
+              ),
             ],
           ),
         ],
@@ -620,25 +746,34 @@ class _ComprasPageState extends State<ComprasPage> {
     );
   }
 
-  Widget _summaryItem(String label, String value) {
+  Widget _summaryItem(IconData icon, String label, String value) {
     return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 19, color: const Color(0xFF70D9AA)),
+            const SizedBox(height: 9),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-        ],
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: const TextStyle(color: Color(0xFFCCD7E5), fontSize: 12),
+            ),
+          ],
+        ),
       ),
     );
   }

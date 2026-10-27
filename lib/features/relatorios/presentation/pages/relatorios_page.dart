@@ -151,8 +151,30 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
 
-      appBar: AppBar(title: const Text('Relatórios'), centerTitle: true),
-
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF172B4D),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Relatórios',
+              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
+            ),
+            SizedBox(height: 2),
+            Text(
+              'Acompanhe os resultados do galpão',
+              style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFFD5DEEB),
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -187,9 +209,46 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
 
         const SizedBox(height: 16),
 
-        Text(
-          _formatarPeriodo(relatorio.inicio, relatorio.fim),
-          style: const TextStyle(color: Colors.black54, fontSize: 14),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEAF0FF),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.calendar_month_rounded,
+                color: Color(0xFF3468D4),
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Período consultado',
+                      style: TextStyle(
+                        color: Color(0xFF718096),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      _formatarPeriodo(relatorio.inicio, relatorio.fim),
+                      style: const TextStyle(
+                        color: Color(0xFF172B4D),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
 
         const SizedBox(height: 20),
@@ -287,15 +346,16 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
 
   Widget _buildSeletorPeriodo() {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE3EAF0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: const Color(0xFF172B4D).withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -305,21 +365,45 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
 
           return Expanded(
             child: GestureDetector(
-              onTap: () => _alterarPeriodo(periodo),
+              onTap: selecionado ? null : () => _alterarPeriodo(periodo),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: selecionado ? Colors.green : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 13,
+                  horizontal: 4,
                 ),
-                child: Text(
-                  periodo,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: selecionado ? Colors.white : Colors.black54,
-                  ),
+                decoration: BoxDecoration(
+                  color: selecionado
+                      ? const Color(0xFF16865B)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (selecionado) ...[
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        size: 15,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 5),
+                    ],
+                    Flexible(
+                      child: Text(
+                        periodo,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: selecionado
+                              ? Colors.white
+                              : const Color(0xFF718096),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
