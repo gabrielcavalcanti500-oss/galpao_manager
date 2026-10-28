@@ -23,10 +23,123 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
 
   final List<String> _periodos = ['Diário', 'Semanal', 'Mensal'];
 
+  DateTime? _dataInicialSelecionada;
+  DateTime? _dataFinalSelecionada;
+  bool _usarDatasPersonalizadas = false;
+
+  String _filtroTipo = 'Todos';
+
+  final TextEditingController _buscaController = TextEditingController();
+
+  final List<String> _tiposFiltro = ['Todos', 'Compras', 'Vendas', 'Gastos'];
+
+  @override
+  void dispose() {
+    _buscaController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
     _carregarRelatorio();
+  }
+
+  Future<void> _selecionarDataInicial() async {
+    final hoje = DateTime.now();
+
+    final data = await showDatePicker(
+      context: context,
+      initialDate: _dataInicialSelecionada ?? hoje,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'Selecione a data inicial',
+      cancelText: 'Cancelar',
+      confirmText: 'Confirmar',
+    );
+
+    if (data == null || !mounted) return;
+
+    setState(() {
+      _dataInicialSelecionada = data;
+    });
+  }
+
+  Future<void> _selecionarDataFinal() async {
+    final hoje = DateTime.now();
+    final inicial = _dataInicialSelecionada;
+
+    final data = await showDatePicker(
+      context: context,
+      initialDate: _dataFinalSelecionada ?? inicial ?? hoje,
+      firstDate: inicial ?? DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'Selecione a data final',
+      cancelText: 'Cancelar',
+      confirmText: 'Confirmar',
+    );
+
+    if (data == null || !mounted) return;
+
+    setState(() {
+      _dataFinalSelecionada = data;
+    });
+  }
+
+  Future<void> _pesquisarDatas() async {
+    final inicio = _dataInicialSelecionada;
+    final finalSelecionada = _dataFinalSelecionada;
+
+    if (inicio == null || finalSelecionada == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecione a data inicial e a data final.'),
+        ),
+      );
+      return;
+    }
+
+    if (finalSelecionada.isBefore(inicio)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('A data final não pode ser anterior à data inicial.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _usarDatasPersonalizadas = true;
+      _carregando = true;
+    });
+
+    try {
+      final relatorio = await _repository.gerarRelatorioCompras(
+        inicio: DateTime(inicio.year, inicio.month, inicio.day),
+        fim: DateTime(
+          finalSelecionada.year,
+          finalSelecionada.month,
+          finalSelecionada.day + 1,
+        ),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _relatorio = relatorio;
+        _carregando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _carregando = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível carregar o relatório.')),
+      );
+    }
   }
 
   // =====================================================
@@ -34,6 +147,58 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
   // =====================================================
 
   Future<void> _carregarRelatorio() async {
+    if (_usarDatasPersonalizadas) {
+      final inicioSelecionado = _dataInicialSelecionada;
+      final fimSelecionado = _dataFinalSelecionada;
+
+      if (inicioSelecionado == null || fimSelecionado == null) {
+        setState(() {
+          _carregando = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _carregando = true;
+      });
+
+      try {
+        final relatorio = await _repository.gerarRelatorioCompras(
+          inicio: DateTime(
+            inicioSelecionado.year,
+            inicioSelecionado.month,
+            inicioSelecionado.day,
+          ),
+          fim: DateTime(
+            fimSelecionado.year,
+            fimSelecionado.month,
+            fimSelecionado.day + 1,
+          ),
+        );
+
+        if (!mounted) return;
+
+        setState(() {
+          _relatorio = relatorio;
+          _carregando = false;
+        });
+      } catch (_) {
+        if (!mounted) return;
+
+        setState(() {
+          _carregando = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível atualizar o relatório.'),
+          ),
+        );
+      }
+
+      return;
+    }
+
     setState(() {
       _carregando = true;
     });
@@ -43,49 +208,41 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
     late DateTime inicio;
     late DateTime fim;
 
-    // ===================================================
-    // DIÁRIO
-    // ===================================================
-
     if (_periodoSelecionado == 'Diário') {
       inicio = DateTime(agora.year, agora.month, agora.day);
-
       fim = inicio.add(const Duration(days: 1));
-    }
-    // ===================================================
-    // SEMANAL
-    // ===================================================
-    else if (_periodoSelecionado == 'Semanal') {
+    } else if (_periodoSelecionado == 'Semanal') {
       final hoje = DateTime(agora.year, agora.month, agora.day);
-
-      // DateTime.weekday:
-      // segunda = 1
-      // domingo = 7
-
       inicio = hoje.subtract(Duration(days: hoje.weekday - 1));
-
       fim = inicio.add(const Duration(days: 7));
-    }
-    // ===================================================
-    // MENSAL
-    // ===================================================
-    else {
+    } else {
       inicio = DateTime(agora.year, agora.month, 1);
-
       fim = DateTime(agora.year, agora.month + 1, 1);
     }
 
-    final relatorio = await _repository.gerarRelatorioCompras(
-      inicio: inicio,
-      fim: fim,
-    );
+    try {
+      final relatorio = await _repository.gerarRelatorioCompras(
+        inicio: inicio,
+        fim: fim,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _relatorio = relatorio;
-      _carregando = false;
-    });
+      setState(() {
+        _relatorio = relatorio;
+        _carregando = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _carregando = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível carregar o relatório.')),
+      );
+    }
   }
 
   // =====================================================
@@ -95,6 +252,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
   void _alterarPeriodo(String periodo) {
     setState(() {
       _periodoSelecionado = periodo;
+      _usarDatasPersonalizadas = false;
     });
 
     _carregarRelatorio();
@@ -126,14 +284,6 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
 
   String _formatarPeriodo(DateTime inicio, DateTime fim) {
     final fimReal = fim.subtract(const Duration(days: 1));
-
-    if (_periodoSelecionado == 'Diário') {
-      return _formatarData(inicio);
-    }
-
-    if (_periodoSelecionado == 'Semanal') {
-      return '${_formatarData(inicio)} - ${_formatarData(fimReal)}';
-    }
 
     return '${_formatarData(inicio)} - ${_formatarData(fimReal)}';
   }
@@ -190,6 +340,24 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
 
   Widget _buildConteudo() {
     final relatorio = _relatorio!;
+    final busca = _buscaController.text.trim().toLowerCase();
+
+    final itensComprados = relatorio.itens.where((item) {
+      return item.materialNome.toLowerCase().contains(busca);
+    }).toList();
+
+    final itensVendidos = relatorio.itensVendidos.where((item) {
+      return item.materialNome.toLowerCase().contains(busca);
+    }).toList();
+
+    final gastosFiltrados = relatorio.gastos.where((gasto) {
+      return gasto.descricao.toLowerCase().contains(busca) ||
+          (gasto.observacao ?? '').toLowerCase().contains(busca);
+    }).toList();
+
+    final mostrarCompras = _filtroTipo == 'Todos' || _filtroTipo == 'Compras';
+    final mostrarVendas = _filtroTipo == 'Todos' || _filtroTipo == 'Vendas';
+    final mostrarGastos = _filtroTipo == 'Todos' || _filtroTipo == 'Gastos';
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -199,15 +367,16 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
           'Relatórios',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-
         const SizedBox(height: 16),
 
-        // =================================================
-        // SELETOR DE PERÍODO
-        // =================================================
         _buildSeletorPeriodo(),
-
         const SizedBox(height: 16),
+
+        _buildFiltroDatas(),
+        const SizedBox(height: 16),
+
+        _buildFiltrosResultados(),
+        const SizedBox(height: 20),
 
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -253,11 +422,8 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
 
         const SizedBox(height: 20),
 
-        // =================================================
-        // RESUMO
-        // =================================================
+        // O resumo financeiro continua representando o período inteiro.
         _buildResumo(relatorio),
-
         const SizedBox(height: 16),
 
         SizedBox(
@@ -274,67 +440,68 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
             ),
           ),
         ),
+
         const SizedBox(height: 24),
 
-        // =================================================
         // COMPRAS
-        // =================================================
-        _buildTituloSecao(
-          icon: Icons.shopping_cart_rounded,
-          titulo: 'Compras',
-          cor: Colors.green,
-        ),
+        if (mostrarCompras) ...[
+          _buildTituloSecao(
+            icon: Icons.shopping_cart_rounded,
+            titulo: 'Compras',
+            cor: Colors.green,
+          ),
+          const SizedBox(height: 12),
+          if (itensComprados.isEmpty)
+            _buildSemMovimentacoes(
+              busca.isEmpty
+                  ? 'Nenhuma compra registrada neste período.'
+                  : 'Nenhuma compra encontrada para essa busca.',
+            )
+          else
+            ...itensComprados.map(_buildItemCompra),
+          const SizedBox(height: 24),
+        ],
 
-        const SizedBox(height: 12),
-
-        if (relatorio.itens.isEmpty)
-          _buildSemMovimentacoes('Nenhuma compra registrada neste período.')
-        else
-          ...relatorio.itens.map(_buildItemCompra),
-
-        const SizedBox(height: 24),
-
-        // =================================================
         // VENDAS
-        // =================================================
-        _buildTituloSecao(
-          icon: Icons.sell_rounded,
-          titulo: 'Vendas',
-          cor: Colors.blue,
-        ),
+        if (mostrarVendas) ...[
+          _buildTituloSecao(
+            icon: Icons.sell_rounded,
+            titulo: 'Vendas',
+            cor: Colors.blue,
+          ),
+          const SizedBox(height: 12),
+          if (itensVendidos.isEmpty)
+            _buildSemMovimentacoes(
+              busca.isEmpty
+                  ? 'Nenhuma venda registrada neste período.'
+                  : 'Nenhuma venda encontrada para essa busca.',
+            )
+          else
+            ...itensVendidos.map(_buildItemVenda),
+          const SizedBox(height: 24),
+        ],
 
-        const SizedBox(height: 12),
-
-        if (relatorio.itensVendidos.isEmpty)
-          _buildSemMovimentacoes('Nenhuma venda registrada neste período.')
-        else
-          ...relatorio.itensVendidos.map(_buildItemVenda),
-
-        const SizedBox(height: 24),
-
-        // =================================================
         // GASTOS
-        // =================================================
-        _buildTituloSecao(
-          icon: Icons.receipt_long_rounded,
-          titulo: 'Gastos',
-          cor: Colors.orange,
-        ),
+        if (mostrarGastos) ...[
+          _buildTituloSecao(
+            icon: Icons.receipt_long_rounded,
+            titulo: 'Gastos',
+            cor: Colors.orange,
+          ),
+          const SizedBox(height: 12),
+          if (gastosFiltrados.isEmpty)
+            _buildSemMovimentacoes(
+              busca.isEmpty
+                  ? 'Nenhum gasto registrado neste período.'
+                  : 'Nenhum gasto encontrado para essa busca.',
+            )
+          else
+            ...gastosFiltrados.map(_buildGasto),
+          const SizedBox(height: 24),
+        ],
 
-        const SizedBox(height: 12),
-
-        if (relatorio.gastos.isEmpty)
-          _buildSemMovimentacoes('Nenhum gasto registrado neste período.')
-        else
-          ...relatorio.gastos.map(_buildGasto),
-
-        const SizedBox(height: 24),
-
-        // =================================================
-        // RESULTADO
-        // =================================================
+        // RESULTADO FINANCEIRO DO PERÍODO COMPLETO
         _buildResultado(relatorio),
-
         const SizedBox(height: 20),
       ],
     );
@@ -746,6 +913,213 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFiltroDatas() {
+    String formatar(DateTime? data) {
+      if (data == null) return 'Selecionar data';
+
+      return _formatarData(data);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE3EAF0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.date_range_rounded, color: Color(0xFF3468D4)),
+              SizedBox(width: 8),
+              Text(
+                'Período personalizado',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF172B4D),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _botaoData(
+                  titulo: 'Data inicial',
+                  data: formatar(_dataInicialSelecionada),
+                  onTap: _selecionarDataInicial,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _botaoData(
+                  titulo: 'Data final',
+                  data: formatar(_dataFinalSelecionada),
+                  onTap: _selecionarDataFinal,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: FilledButton.icon(
+              onPressed: _carregando ? null : _pesquisarDatas,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF172B4D),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(Icons.search_rounded),
+              label: const Text(
+                'Pesquisar período',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _botaoData({
+    required String titulo,
+    required String data,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F7FA),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE3EAF0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              titulo,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF718096)),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_month_rounded,
+                  size: 16,
+                  color: Color(0xFF3468D4),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    data,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF172B4D),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFiltrosResultados() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE3EAF0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Filtrar resultados',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF172B4D),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _tiposFiltro.map((tipo) {
+              final selecionado = _filtroTipo == tipo;
+
+              return ChoiceChip(
+                label: Text(tipo),
+                selected: selecionado,
+                onSelected: (_) {
+                  setState(() {
+                    _filtroTipo = tipo;
+                  });
+                },
+                selectedColor: const Color(0xFFE8F6EF),
+                labelStyle: TextStyle(
+                  color: selecionado
+                      ? const Color(0xFF16865B)
+                      : const Color(0xFF718096),
+                  fontWeight: FontWeight.w600,
+                ),
+                side: BorderSide(
+                  color: selecionado
+                      ? const Color(0xFF16865B)
+                      : const Color(0xFFE3EAF0),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _buscaController,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: 'Buscar material ou descrição...',
+              prefixIcon: const Icon(Icons.search_rounded),
+              suffixIcon: _buscaController.text.isEmpty
+                  ? null
+                  : IconButton(
+                      onPressed: () {
+                        _buscaController.clear();
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+              filled: true,
+              fillColor: const Color(0xFFF5F7FA),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
